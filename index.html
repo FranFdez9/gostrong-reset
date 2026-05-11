@@ -160,24 +160,28 @@
     }
 
     // CAMBIAR CONTRASEÑA
-    async function cambiarPassword() {
-         console.log("Botón pulsado");
+   async function cambiarPassword() {
+
+    const mensaje =
+        document.getElementById('mensaje');
+
+    const error =
+        document.getElementById('error');
+
+    mensaje.textContent = '';
+    error.textContent = '';
+
+    try {
+
+        error.textContent = 'Procesando...';
+
+        console.log("Botón pulsado");
+
         const password =
             document.getElementById('password').value;
 
         const confirmar =
             document.getElementById('confirmar').value;
-
-        const mensaje =
-            document.getElementById('mensaje');
-
-        const error =
-            document.getElementById('error');
-
-        mensaje.textContent = '';
-        error.textContent = '';
-
-        // VALIDACIONES
 
         if (password !== confirmar) {
 
@@ -195,24 +199,33 @@
             return;
         }
 
-        // UPDATE PASSWORD
+        error.textContent =
+            'Conectando con Supabase...';
 
-        const { error: updateError } =
+        const { data, error: updateError } =
             await supabase.auth.updateUser({
                 password: password
             });
 
+        console.log("Respuesta Supabase:", data);
+
         if (updateError) {
 
             error.textContent =
-                'Error: ' + updateError.message;
+                'ERROR REAL: ' + updateError.message;
 
         } else {
 
             mensaje.textContent =
-                '✅ Contraseña cambiada correctamente. Ya puedes iniciar sesión.';
+                '✅ Contraseña cambiada correctamente';
         }
+
+    } catch (e) {
+
+        error.textContent =
+            'ERROR JS: ' + e.message;
     }
+}
 
     // INICIAR RECOVERY AUTOMÁTICAMENTE
     inicializarSesionRecovery();
