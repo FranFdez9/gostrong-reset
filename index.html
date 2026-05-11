@@ -5,8 +5,11 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>GoStrong - Restablecer contraseña</title>
 
-    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-
+   <script src="https://unpkg.com/@supabase/supabase-js@2"></script>
+    <script>
+    console.log("Supabase cargado:", window.supabase);
+    </script>
+    
     <style>
         body {
             font-family: Arial, sans-serif;
@@ -158,7 +161,7 @@
 
     // CAMBIAR CONTRASEÑA
     async function cambiarPassword() {
-
+         console.log("Botón pulsado");
         const password =
             document.getElementById('password').value;
 
