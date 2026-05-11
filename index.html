@@ -4,7 +4,9 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>GoStrong - Restablecer contraseña</title>
+
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+
     <style>
         body {
             font-family: Arial, sans-serif;
@@ -16,13 +18,26 @@
             height: 100vh;
             margin: 0;
         }
+
         .card {
             background: #16213E;
             padding: 40px;
             border-radius: 16px;
             width: 320px;
+            box-shadow: 0 0 20px rgba(0,0,0,0.3);
         }
-        h2 { color: #F5A623; text-align: center; }
+
+        h2 {
+            color: #F5A623;
+            text-align: center;
+            margin-bottom: 10px;
+        }
+
+        p {
+            text-align: center;
+            color: #A0A0B0;
+        }
+
         input {
             width: 100%;
             padding: 12px;
@@ -32,6 +47,7 @@
             font-size: 16px;
             box-sizing: border-box;
         }
+
         button {
             width: 100%;
             padding: 14px;
@@ -43,52 +59,162 @@
             cursor: pointer;
             margin-top: 10px;
         }
-        #mensaje { text-align: center; margin-top: 15px; color: #2ECC71; }
-        #error { text-align: center; margin-top: 15px; color: #E94560; }
+
+        button:hover {
+            opacity: 0.9;
+        }
+
+        #mensaje {
+            text-align: center;
+            margin-top: 15px;
+            color: #2ECC71;
+        }
+
+        #error {
+            text-align: center;
+            margin-top: 15px;
+            color: #FF6B6B;
+        }
     </style>
 </head>
+
 <body>
-    <div class="card">
-        <h2>💪 GoStrong</h2>
-        <p style="text-align:center; color:#A0A0B0">Introduce tu nueva contraseña</p>
-        <input type="password" id="password" placeholder="Nueva contraseña" />
-        <input type="password" id="confirmar" placeholder="Confirmar contraseña" />
-        <button onclick="cambiarPassword()">Cambiar contraseña</button>
-        <div id="mensaje"></div>
-        <div id="error"></div>
-    </div>
 
-    <script>
-        const supabase = window.supabase.createClient(
-            'https://gvfnihpkuycobbqaklxh.supabase.co',
-            'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imd2Zm5paHBrdXljb2JicWFrbHhoIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzY2NjMxOTMsImV4cCI6MjA5MjIzOTE5M30.qmTL3yDwKD1RtItzlj1qK6Gl-XQ9BZ0CIZou_UbfhN0'
-        );
+<div class="card">
 
-        async function cambiarPassword() {
-            const password = document.getElementById('password').value;
-            const confirmar = document.getElementById('confirmar').value;
-            const mensaje = document.getElementById('mensaje');
-            const error = document.getElementById('error');
+    <h2>💪 GoStrong</h2>
 
-            mensaje.textContent = '';
-            error.textContent = '';
+    <p>Introduce tu nueva contraseña</p>
 
-            if (password !== confirmar) {
-                error.textContent = 'Las contraseñas no coinciden';
-                return;
-            }
-            if (password.length < 6) {
-                error.textContent = 'La contraseña debe tener al menos 6 caracteres';
-                return;
-            }
+    <input
+        type="password"
+        id="password"
+        placeholder="Nueva contraseña"
+    />
 
-            const { err } = await supabase.auth.updateUser({ password });
-            if (err) {
-                error.textContent = 'Error: ' + err.message;
-            } else {
-                mensaje.textContent = '✅ Contraseña cambiada correctamente. Ya puedes iniciar sesión.';
-            }
+    <input
+        type="password"
+        id="confirmar"
+        placeholder="Confirmar contraseña"
+    />
+
+    <button onclick="cambiarPassword()">
+        Cambiar contraseña
+    </button>
+
+    <div id="mensaje"></div>
+
+    <div id="error"></div>
+
+</div>
+
+<script>
+
+    // CONFIGURACIÓN SUPABASE
+    const supabase = window.supabase.createClient(
+        'https://gvfnihpkuycobbqaklxh.supabase.co',
+        'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imd2Zm5paHBrdXljb2JicWFrbHhoIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzY2NjMxOTMsImV4cCI6MjA5MjIzOTE5M30.qmTL3yDwKD1RtItzlj1qK6Gl-XQ9BZ0CIZou_UbfhN0'
+    );
+
+    // CREAR SESIÓN RECOVERY DESDE EL EMAIL
+    async function inicializarSesionRecovery() {
+
+        const hash = window.location.hash;
+
+        if (!hash) {
+            document.getElementById('error').textContent =
+                'No se encontró token de recuperación.';
+            return;
         }
-    </script>
+
+        const params = new URLSearchParams(hash.substring(1));
+
+        const access_token = params.get('access_token');
+        const refresh_token = params.get('refresh_token');
+
+        if (!access_token || !refresh_token) {
+
+            document.getElementById('error').textContent =
+                'Token inválido o expirado.';
+
+            return;
+        }
+
+        const { error } = await supabase.auth.setSession({
+            access_token,
+            refresh_token
+        });
+
+        if (error) {
+
+            document.getElementById('error').textContent =
+                'Error iniciando sesión recovery: ' + error.message;
+
+        } else {
+
+            console.log('Sesión recovery iniciada correctamente');
+        }
+    }
+
+    // CAMBIAR CONTRASEÑA
+    async function cambiarPassword() {
+
+        const password =
+            document.getElementById('password').value;
+
+        const confirmar =
+            document.getElementById('confirmar').value;
+
+        const mensaje =
+            document.getElementById('mensaje');
+
+        const error =
+            document.getElementById('error');
+
+        mensaje.textContent = '';
+        error.textContent = '';
+
+        // VALIDACIONES
+
+        if (password !== confirmar) {
+
+            error.textContent =
+                'Las contraseñas no coinciden';
+
+            return;
+        }
+
+        if (password.length < 6) {
+
+            error.textContent =
+                'La contraseña debe tener al menos 6 caracteres';
+
+            return;
+        }
+
+        // UPDATE PASSWORD
+
+        const { error: updateError } =
+            await supabase.auth.updateUser({
+                password: password
+            });
+
+        if (updateError) {
+
+            error.textContent =
+                'Error: ' + updateError.message;
+
+        } else {
+
+            mensaje.textContent =
+                '✅ Contraseña cambiada correctamente. Ya puedes iniciar sesión.';
+        }
+    }
+
+    // INICIAR RECOVERY AUTOMÁTICAMENTE
+    inicializarSesionRecovery();
+
+</script>
+
 </body>
 </html>
